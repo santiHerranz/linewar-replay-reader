@@ -11,7 +11,8 @@ using Zenject;
 using Assets.Client.Replays;
 using System;
 using System.IO;
-
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 public class main : MonoBehaviour
 {
@@ -20,9 +21,9 @@ public class main : MonoBehaviour
     {
         Debug.Log("LineWar Replay and Summary Reader by Tim Baler");
 
-        //readReplayFile(@"C:\temp\94c63125-d368-4d4c-9713-174ae2803df6.zlwreplay");
+        readReplayFile(@"C:\temp\94c63125-d368-4d4c-9713-174ae2803df6.zlwreplay");
 
-        readSummaryFile(@"C:\temp\20230408_102005_FFA_TimBaler,_RK_big_[+1]_on_465019_36_1.lwsummary");
+        //readSummaryFile(@"C:\temp\20230408_102005_FFA_TimBaler,_RK_big_[+1]_on_465019_36_1.lwsummary");
 
     }
 
@@ -72,12 +73,45 @@ public class main : MonoBehaviour
                     EntityType PlayerType = message.Type;
                     Vector3 position = message.Position;
 
-                    Debug.Log("Elapsed: " + next.Elapsed + " CreatePresenter " + PlayerType + " at " + position.ToString());
+                    //Debug.Log("Elapsed: " + next.Elapsed + " CreatePresenter " + PlayerType + " at " + position.ToString());
                 }
 
                 if (next.ToString().Equals("MatchEnded"))
                 {
                     isMatchEnd = true;
+
+
+                    MatchEnded message = (MatchEnded)next;
+                    IEnumerable<PlayerData> players = message.MatchInfo.GetAll();
+                    foreach (var playerData in players)
+                    {
+
+                        Debug.Log("Player: " + playerData.ToString());
+                        Debug.Log("Id: " + playerData.Id);
+
+                        Debug.Log("TotalEnergyConsumed: " + playerData.TotalEnergyConsumed);
+                        Debug.Log("TerritoryConquests: " + playerData.TerritoryConquests);
+                        Debug.Log("CitiesConstructed: " + playerData.CitiesConstructed);
+                        Debug.Log("StructuresLostWorth: " + playerData.StructuresLostWorth);
+                        Debug.Log("StructuresLost: " + playerData.StructuresLost);
+                        Debug.Log("StructuresConstructed: " + playerData.StructuresConstructed);
+                        Debug.Log("UnitsLostWorth: " + playerData.UnitsLostWorth);
+                        Debug.Log("UnitsLost: " + playerData.UnitsLost);
+                        Debug.Log("UnitsProduced: " + playerData.UnitsProduced);
+                        Debug.Log("TotalEnergyProduced: " + playerData.TotalEnergyProduced);
+                        Debug.Log("TotalCapitalUpkeep: " + playerData.TotalCapitalUpkeep);
+                        Debug.Log("TotalCapitalGenerated: " + playerData.TotalCapitalGenerated);
+                        Debug.Log("Status: " + playerData.Status.ToString());
+                        Debug.Log("TerritoryLosses: " + playerData.TerritoryLosses);
+
+
+                    }
+                    IEnumerable<PlayerData> all = message.MatchInfo.GetAll();
+                    string ResolveEndReason = string.Join(", ", all.Select((Func<PlayerData, string>)(data => "'" + message.MatchInfo.ResolveEndReason(data.Id) + "'")).Distinct<string>());
+
+                    Debug.Log("ResolveEndReason: " + ResolveEndReason);
+
+
                 }
 
             }
