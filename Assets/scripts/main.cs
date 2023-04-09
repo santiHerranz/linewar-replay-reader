@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Globalization;
 
 public class main : MonoBehaviour
 {
@@ -62,6 +63,52 @@ public class main : MonoBehaviour
         {
             bool isMatchEnd = false;
 
+            string version = playback.Entry.Description.Version.ToString();
+            int worldSeed = playback.Entry.Description.WorldSeed;
+            string startTime = playback.Entry.StartTimeUtc.ToString("o", CultureInfo.InvariantCulture);
+
+            Debug.Log("startTime: " + startTime);
+            Debug.Log("version: " + version);
+            Debug.Log("WorldSeed: " + worldSeed);
+
+
+            string[] teamNames = { "Alpha", "Bravo", "Charlie", "Delta", "Echo", "6", "7", "8" };
+            string title = "";
+            string battletype = "";
+
+            JArray teamsDataNames = new JArray();
+            JArray playerDataNames = new JArray();
+
+
+            int playerIndex = 1;
+            int teamIndex = 1;
+
+            foreach (Team t in playback.Entry.Description.Teams)
+            {
+                if (title != "") title += " vs ";
+
+                teamsDataNames.Add(teamNames[teamsDataNames.Count]);
+                foreach (Player p in t.Members)
+                {
+                    playerDataNames.Add("" + p.Name);
+                    title += " " + p.Name + " ";
+                }
+                teamIndex = playerIndex;
+
+            }
+
+            foreach (Team t in playback.Entry.Description.Teams)
+            {
+                if (battletype.Length > 0) battletype += "v";
+                battletype += t.Members.Count;
+            }
+
+            Debug.Log("Title : " + title);
+            Debug.Log("Type : " + battletype);
+            Debug.Log("Teams : " + String.Join(",", teamsDataNames));
+            Debug.Log("Players : " + String.Join(",", playerDataNames));
+
+
             while (!isMatchEnd)
             {
                 Message next = playback.ReadNext();
@@ -80,6 +127,8 @@ public class main : MonoBehaviour
                 {
                     isMatchEnd = true;
 
+                    Debug.Log("====== MatchEnded ======");
+
 
                     MatchEnded message = (MatchEnded)next;
                     IEnumerable<PlayerData> players = message.MatchInfo.GetAll();
@@ -88,7 +137,7 @@ public class main : MonoBehaviour
 
                         Debug.Log("Player: " + playerData.ToString());
                         Debug.Log("Id: " + playerData.Id);
-
+                        Debug.Log("PlayerName: " + playerDataNames.ElementAt(playerData.Id - 1));
                         Debug.Log("TotalEnergyConsumed: " + playerData.TotalEnergyConsumed);
                         Debug.Log("TerritoryConquests: " + playerData.TerritoryConquests);
                         Debug.Log("CitiesConstructed: " + playerData.CitiesConstructed);
